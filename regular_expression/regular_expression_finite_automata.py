@@ -1,4 +1,5 @@
-from typing import List, Any
+from turtle import st
+from typing import List, Any, Callable
 from unicodedata import name
 
 regular_expression_str = "(ab+)*|(cab)+"
@@ -18,9 +19,9 @@ class State:
 
 
 class TransitionArrow:
-    def __init__(self, state: State, condition: str) -> None:
+    def __init__(self, state: State, condition: Callable) -> None:
         self.state: State = state
-        self.condition: str = condition
+        self.condition: Callable = condition
 
 
 class RegularExpressionParser:
@@ -48,23 +49,25 @@ class StateMachine:
         self.text: str = text
         self.max_len: int = len(text)
 
-    def next_state(self, char: str, i: int = 0, state: State | None = None) -> None:
-
-        if state != None:
-            self.current_state = state
-
-        transitions: List[TransitionArrow] = self.current_state.out_transitions
-
-        print(self)
-
-        for tr in transitions:
-            if tr.condition == char and i < self.max_len:
-                next_char = self.text[i + 1]
-                self.next_state(next_char, i + 1, tr.state)
-
     def start(self):
-        for char in self.text:
-            self.next_state(char)
+        # using Bread first search
+
+        states: List[State] = []
+        states.append(self.states[0])
+        text = self.text
+
+        for i, char in enumerate(text):
+            print("-" * 100)
+
+            state: State = states.pop(0)
+            print(f"{state.name} : {STATE_TYPES_STR[state.state_type]}")
+            print(f"{text[:i]}|{text[i:]}")
+            print(char)
+
+            for tr in state.out_transitions:
+                tr: TransitionArrow = tr
+                if tr.condition(char):
+                    states.append(tr.state)
 
     def __str__(self) -> str:
         state_type = STATE_TYPES_STR[self.current_state.state_type]
@@ -83,30 +86,34 @@ s_0 = State(state_type=start_state, name="s_0")
 states.append(s_0)
 
 s_1 = State(state_type=char_state, name="s_1")
-s_0_out_0 = TransitionArrow(state=s_1, condition="a")
-s_0.add_out_transition(s_0_out_0)
-
-s_2 = State(state_type=char_state, name="s_2")
-s_1_out_0 = TransitionArrow(state=s_2, condition="b")
-s_1.add_out_transition(s_1_out_0)
-
-s_2_out_0 = TransitionArrow(state=s_2, condition="b")
-s_2_out_1 = TransitionArrow(state=s_0, condition="a")
-s_2.add_out_transition(s_2_out_0)
-s_2.add_out_transition(s_2_out_1)
-
+s_2 = State(state_type=final_state, name="s_2")
 s_3 = State(state_type=final_state, name="s_3")
-s_3_out_0 = TransitionArrow(state=s_0, condition="c")
-s_3.add_out_transition(s_3_out_0)
-
 s_4 = State(state_type=char_state, name="s_4")
-s_0_out_1 = TransitionArrow(state=s_4, condition="c")
+s_5 = State(state_type=char_state, name="s_5")
+
+
+s_0_out_0 = TransitionArrow(state=s_1, condition=lambda c: c == "a")
+s_0_out_1 = TransitionArrow(state=s_4, condition=lambda c: c == "c")
+s_0.add_out_transition(s_0_out_0)
 s_0.add_out_transition(s_0_out_1)
 
-s_5 = State(state_type=char_state, name="s_5")
-s_4_out_0 = TransitionArrow(state=s_5, condition="a")
+s_1_out_0 = TransitionArrow(state=s_2, condition=lambda c: c == "b")
+s_1.add_out_transition(s_1_out_0)
+
+s_2_out_0 = TransitionArrow(state=s_2, condition=lambda c: c == "b")
+s_2_out_1 = TransitionArrow(state=s_1, condition=lambda c: c == "a")
+s_2_out_2 = TransitionArrow(state=s_4, condition=lambda c: c == "c")
+s_2.add_out_transition(s_2_out_0)
+s_2.add_out_transition(s_2_out_1)
+s_2.add_out_transition(s_2_out_2)
+
+s_3_out_0 = TransitionArrow(state=s_4, condition=lambda c: c == "c")
+s_3.add_out_transition(s_3_out_0)
+
+s_4_out_0 = TransitionArrow(state=s_5, condition=lambda c: c == "a")
 s_4.add_out_transition(s_4_out_0)
-s_5_out_0 = TransitionArrow(state=s_3, condition="b")
+
+s_5_out_0 = TransitionArrow(state=s_3, condition=lambda c: c == "b")
 s_5.add_out_transition(s_5_out_0)
 
 states.append(s_0)
@@ -115,8 +122,9 @@ states.append(s_2)
 states.append(s_3)
 states.append(s_4)
 states.append(s_5)
+# states.append(s_6)
 
-text = "abbbbbbabbbbbbbbcabcab"
+text = "abbabbbcabcab"
 
 fsm = StateMachine(states=states, text=text)
 
