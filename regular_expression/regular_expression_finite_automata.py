@@ -60,7 +60,8 @@ class StateMachine:
 
             state: State = states.pop(0)
             print(f"{state.name} : {STATE_TYPES_STR[state.state_type]}")
-            print(f"{text[:i]}|{text[i:]}")
+            current_char = f"{text[:i]}|{text[i:]}"
+            print(current_char)
             print(char)
 
             for tr in state.out_transitions:
@@ -68,9 +69,17 @@ class StateMachine:
                 if tr.condition(char):
                     if tr.state.state_type != STATE_TYPES["CHAR_STATE"]:
                         states_pos.append(
-                            (tr.state.name, i, STATE_TYPES_STR[tr.state.state_type])
+                            (
+                                tr.state.name,
+                                i,
+                                # STATE_TYPES_STR[tr.state.state_type],
+                                # current_char,
+                            )
                         )
                     states.append(tr.state)
+
+                if len(states) == 0:
+                    states.append(self.states[0])
 
         return states_pos
 
@@ -127,9 +136,51 @@ states.append(s_4)
 states.append(s_5)
 # states.append(s_6)
 
-text = "abbabbbcabcab"
+# text_1 = "abbabbbcabcab"
+text_1 = "aaccbbabbbcabcab"
 
-fsm = StateMachine(states=states, text=text)
+fsm = StateMachine(states=states, text=text_1)
 
 
-print(fsm.start())
+start_end_states = fsm.start()
+print(start_end_states)
+
+
+def compress_pos(states: List[tuple[str, int, str]]):
+    """
+    конкретно в моем конечном автомате последовательность когда
+    сразу после состояния s_1 идет s_2
+    или после состояния s_4 идет s_3, то это будет являтся матчем <- неверное суждение
+    """
+    matches: List[List[int]] = []
+
+    i = 0
+    while i < len(states):
+        if states[i][0] == "s_1" and states[i + 1][0] == "s_2":
+            start_i = i
+            matches.append([states[start_i][1], states[i + 1][1]])
+            i += 1
+            while states[i][0] == "s_2" and i < len(states) - 1:
+                matches.append([states[start_i][1], states[i + 1][1]])
+                i += 1
+        elif states[i][0] == "s_4" and states[i + 1][0] == "s_3":
+            start_i = i
+            matches.append([states[start_i][1], states[i + 1][1]])
+            i += 2
+            while (
+                states[i][0] == "s_4"
+                and states[i + 1][0] == "s_3"
+                and i + 1 < len(states)
+            ):
+                matches.append([states[start_i][1], states[i + 1][1]])
+                i += 2
+        else:
+            i += 1
+
+    return matches
+
+
+start_end_states = compress_pos(start_end_states)
+
+for start, end in start_end_states:
+    print(text_1[start:end])
