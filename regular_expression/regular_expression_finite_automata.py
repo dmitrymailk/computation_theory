@@ -1,6 +1,4 @@
-from turtle import st
 from typing import List, Any, Callable
-from unicodedata import name
 
 regular_expression_str = "(ab+)*|(cab)+"
 
@@ -55,6 +53,7 @@ class StateMachine:
         states: List[State] = []
         states.append(self.states[0])
         text = self.text
+        states_pos = []
 
         for i, char in enumerate(text):
             print("-" * 100)
@@ -67,12 +66,18 @@ class StateMachine:
             for tr in state.out_transitions:
                 tr: TransitionArrow = tr
                 if tr.condition(char):
+                    if tr.state.state_type != STATE_TYPES["CHAR_STATE"]:
+                        states_pos.append(
+                            (tr.state.name, i, STATE_TYPES_STR[tr.state.state_type])
+                        )
                     states.append(tr.state)
+
+        return states_pos
 
     def __str__(self) -> str:
         state_type = STATE_TYPES_STR[self.current_state.state_type]
         state_name = self.current_state.name
-        return f"Current state {state_name} : {state_type}"
+        return f"{state_name} : {state_type}"
 
 
 print("program starts")
@@ -82,13 +87,11 @@ char_state = STATE_TYPES["CHAR_STATE"]
 start_state = STATE_TYPES["START_STATE"]
 final_state = STATE_TYPES["FINAL_STATE"]
 
-s_0 = State(state_type=start_state, name="s_0")
-states.append(s_0)
-
-s_1 = State(state_type=char_state, name="s_1")
+s_0 = State(state_type=char_state, name="s_0")
+s_1 = State(state_type=start_state, name="s_1")
 s_2 = State(state_type=final_state, name="s_2")
 s_3 = State(state_type=final_state, name="s_3")
-s_4 = State(state_type=char_state, name="s_4")
+s_4 = State(state_type=start_state, name="s_4")
 s_5 = State(state_type=char_state, name="s_5")
 
 
@@ -128,4 +131,5 @@ text = "abbabbbcabcab"
 
 fsm = StateMachine(states=states, text=text)
 
-fsm.start()
+
+print(fsm.start())
