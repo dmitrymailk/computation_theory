@@ -2,7 +2,9 @@ from typing import List, Any, Callable
 
 regular_expression_str = "(ab+)*|(cab)+"
 
-STATE_TYPES = {"FINAL_STATE": 0, "START_STATE": 1, "CHAR_STATE": 2}
+STATE_TYPES = {"FINAL_STATE": 0, "START_STATE": 1,
+               "CHAR_STATE": 2, "ROOT_STATE": 3}
+
 STATE_TYPES_STR = {STATE_TYPES[item]: item for item in STATE_TYPES.keys()}
 
 
@@ -15,11 +17,17 @@ class State:
     def add_out_transition(self, trans) -> None:
         self.out_transitions.append(trans)
 
+    def __repr__(self) -> str:
+        return self.name
+
 
 class TransitionArrow:
     def __init__(self, state: State, condition: Callable) -> None:
         self.state: State = state
         self.condition: Callable = condition
+
+    def __repr__(self) -> str:
+        return self.state.name
 
 
 # class RegularExpressionParser:
@@ -51,14 +59,18 @@ class StateMachine:
         # using Bread first search
 
         states = []
-        states.append(self.states[0])
+        states.append((self.states[0], []))
         text = self.text
-        states_pos = []
+        paths = []
 
         for i, char in enumerate(text):
-            print("-" * 100)
+            print("-" * 50)
 
-            state: State = states.pop(0)
+            state = states.pop(0)
+            prev_states = state[1]
+            print(prev_states)
+            state: State = state[0]
+
             print(f"{state.name} : {STATE_TYPES_STR[state.state_type]}")
             current_char = f"{text[:i]}|{text[i:]}"
             print(current_char)
@@ -68,14 +80,52 @@ class StateMachine:
             for tr in state.out_transitions:
                 tr: TransitionArrow = tr
                 if tr.condition(char):
-                    if tr.state.state_type == STATE_TYPES["START_STATE"]:
-                        states.append(tr.state)
-                        counter += 1
+                    counter += 1
+                    # if (
+                    #     tr.state.state_type == STATE_TYPES["START_STATE"]
+                    #     or len(prev_states) > 0
+                    # ):
+                    #     states.append(
+                    #         (
+                    #             tr.state,
+                    #             [*prev_states, (i, tr.state.state_type, tr.state.name)],
+                    #         )
+                    #     )
+                    state_type = tr.state.state_type
+
+                    if (
+                        state_type == STATE_TYPES["START_STATE"]
+                        and len(prev_states) == 0
+                    ):
+                        states.append(
+                            (
+                                tr.state,
+                                [(i, state_type, tr.state.name)],
+                            )
+                        )
+                    elif len(states) > 0:
+                        if state_type == STATE_TYPES["CHAR_STATE"]:
+                            states.append(
+                                (
+                                    *prev_states,
+                                    tr.state,
+                                    [(i, state_type, tr.state.name)],
+                                )
+                            )
+                        elif state_type == STATE_TYPES["START_STATE"] and prev_states[0][2] != tr.state.name:
+                            ...
 
             if counter == 0:
-                states.append(self.states[0])
+                if len(prev_states) > 0:
+                    if (
+                        prev_states[0][1] == STATE_TYPES["START_STATE"]
+                        and prev_states[-1][1] == STATE_TYPES["FINAL_STATE"]
+                    ):
+                        paths.append(prev_states)
+                prev_states = []
+                states.append((self.states[0], prev_states))
 
-        return states_pos
+        return paths
 
     def __str__(self) -> str:
         state_type = STATE_TYPES_STR[self.current_state.state_type]
@@ -89,8 +139,9 @@ states = []
 char_state = STATE_TYPES["CHAR_STATE"]
 start_state = STATE_TYPES["START_STATE"]
 final_state = STATE_TYPES["FINAL_STATE"]
+root_state = STATE_TYPES["ROOT_STATE"]
 
-s_0 = State(state_type=char_state, name="s_0")
+s_0 = State(state_type=root_state, name="s_0")
 s_1 = State(state_type=start_state, name="s_1")
 s_2 = State(state_type=final_state, name="s_2")
 s_3 = State(state_type=final_state, name="s_3")
