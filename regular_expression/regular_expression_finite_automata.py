@@ -52,7 +52,7 @@ class StateMachine:
     def __init__(self, states: List[State], text: str) -> None:
         self.states: List[State] = states
         self.current_state: State = self.states[0]
-        self.text: str = text
+        self.text: str = text + "\0"
         self.max_len: int = len(text)
 
     def start(self):
@@ -62,13 +62,14 @@ class StateMachine:
         states.append((self.states[0], []))
         text = self.text
         paths = []
+        prev_states = []
 
         for i, char in enumerate(text):
-            print("-" * 50)
+            print(i, "-" * 50)
 
             state = states.pop(0)
             prev_states = state[1]
-            print(prev_states)
+            print("prev_states before", prev_states)
             state: State = state[0]
 
             print(f"{state.name} : {STATE_TYPES_STR[state.state_type]}")
@@ -81,50 +82,43 @@ class StateMachine:
                 tr: TransitionArrow = tr
                 if tr.condition(char):
                     counter += 1
-                    # if (
-                    #     tr.state.state_type == STATE_TYPES["START_STATE"]
-                    #     or len(prev_states) > 0
-                    # ):
-                    #     states.append(
-                    #         (
-                    #             tr.state,
-                    #             [*prev_states, (i, tr.state.state_type, tr.state.name)],
-                    #         )
-                    #     )
                     state_type = tr.state.state_type
 
-                    if (
-                        state_type == STATE_TYPES["START_STATE"]
-                        and len(prev_states) == 0
-                    ):
+                    if state_type == STATE_TYPES["START_STATE"]:
                         states.append(
                             (
                                 tr.state,
                                 [(i, state_type, tr.state.name)],
                             )
                         )
-                    elif len(states) > 0:
-                        if state_type == STATE_TYPES["CHAR_STATE"]:
-                            states.append(
-                                (
-                                    *prev_states,
-                                    tr.state,
-                                    [(i, state_type, tr.state.name)],
-                                )
+                    elif state_type == STATE_TYPES["FINAL_STATE"]:
+                        states.append(
+                            (
+                                tr.state,
+                                [prev_states[0],
+                                    (i, state_type, tr.state.name)],
                             )
-                        elif state_type == STATE_TYPES["START_STATE"] and prev_states[0][2] != tr.state.name:
-                            ...
+                        )
+
+                    else:
+                        states.append(
+                            (
+                                tr.state,
+                                [*prev_states],
+                            )
+                        )
+            print("prev_states after", prev_states)
+
+            if len(prev_states) > 1:
+                paths.append(prev_states)
 
             if counter == 0:
-                if len(prev_states) > 0:
-                    if (
-                        prev_states[0][1] == STATE_TYPES["START_STATE"]
-                        and prev_states[-1][1] == STATE_TYPES["FINAL_STATE"]
-                    ):
-                        paths.append(prev_states)
                 prev_states = []
                 states.append((self.states[0], prev_states))
 
+        if len(prev_states) > 1:
+            paths.append(prev_states)
+        print("last prev_states", prev_states)
         return paths
 
     def __str__(self) -> str:
@@ -155,17 +149,21 @@ s_0.add_out_transition(s_0_out_0)
 s_0.add_out_transition(s_0_out_1)
 
 s_1_out_0 = TransitionArrow(state=s_2, condition=lambda c: c == "b")
+s_1_out_1 = TransitionArrow(state=s_1, condition=lambda c: c == "a")
 s_1.add_out_transition(s_1_out_0)
+s_1.add_out_transition(s_1_out_1)
 
 s_2_out_0 = TransitionArrow(state=s_2, condition=lambda c: c == "b")
 s_2_out_1 = TransitionArrow(state=s_1, condition=lambda c: c == "a")
-s_2_out_2 = TransitionArrow(state=s_4, condition=lambda c: c == "c")
+# s_2_out_2 = TransitionArrow(state=s_3, condition=lambda c: not c in ["a", 'b'])
 s_2.add_out_transition(s_2_out_0)
 s_2.add_out_transition(s_2_out_1)
-s_2.add_out_transition(s_2_out_2)
+# s_2.add_out_transition(s_2_out_2)
 
 s_3_out_0 = TransitionArrow(state=s_4, condition=lambda c: c == "c")
+# s_3_out_1 = TransitionArrow(state=s_1, condition=lambda c: c == "a")
 s_3.add_out_transition(s_3_out_0)
+# s_3.add_out_transition(s_3_out_1)
 
 s_4_out_0 = TransitionArrow(state=s_5, condition=lambda c: c == "a")
 s_4.add_out_transition(s_4_out_0)
@@ -182,7 +180,7 @@ states.append(s_5)
 # states.append(s_6)
 
 # text_1 = "abbabbbcabcab"
-text_1 = "aaccbbabbbcabcab"
+text_1 = "aaaabbbaaabaaabbcabcabcabaaaabbbb"
 
 fsm = StateMachine(states=states, text=text_1)
 
@@ -191,41 +189,11 @@ start_end_states = fsm.start()
 print(start_end_states)
 
 
-def compress_pos(states: List[tuple[str, int, str]]):
-    """
-    конкретно в моем конечном автомате последовательность когда
-    сразу после состояния s_1 идет s_2
-    или после состояния s_4 идет s_3, то это будет являтся матчем <- неверное суждение
-    """
-    matches: List[List[int]] = []
-
-    i = 0
-    while i < len(states):
-        if states[i][0] == "s_1" and states[i + 1][0] == "s_2":
-            start_i = i
-            matches.append([states[start_i][1], states[i + 1][1]])
-            i += 1
-            while states[i][0] == "s_2" and i < len(states) - 1:
-                matches.append([states[start_i][1], states[i + 1][1]])
-                i += 1
-        elif states[i][0] == "s_4" and states[i + 1][0] == "s_3":
-            start_i = i
-            matches.append([states[start_i][1], states[i + 1][1]])
-            i += 2
-            while (
-                states[i][0] == "s_4"
-                and states[i + 1][0] == "s_3"
-                and i + 1 < len(states)
-            ):
-                matches.append([states[start_i][1], states[i + 1][1]])
-                i += 2
-        else:
-            i += 1
-
-    return matches
-
-
 # start_end_states = compress_pos(start_end_states)
 
-# for start, end in start_end_states:
-#     print(text_1[start:end])
+for item in start_end_states:
+    start = item[0][0]
+    end = item[-1][0]+1
+
+    print(
+        f"{text_1[start:end]} - {text_1[:start]}🢑{text_1[start:end]}🢑{text_1[end:]}")
