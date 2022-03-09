@@ -22,22 +22,22 @@ class TransitionArrow:
         self.condition: Callable = condition
 
 
-class RegularExpressionParser:
-    def __init__(self, regular_expression: str) -> None:
-        self.regular_expression: str = regular_expression
-        self.parsed_states: List[State] = []
+# class RegularExpressionParser:
+#     def __init__(self, regular_expression: str) -> None:
+#         self.regular_expression: str = regular_expression
+#         self.parsed_states: List[State] = []
 
-    def __add_state(self, state: State) -> None:
-        self.parsed_states.append(state)
+#     def __add_state(self, state: State) -> None:
+#         self.parsed_states.append(state)
 
-    def parse(self) -> None:
-        i = 0
-        prev_state = None
-        while i < len(self.regular_expression):
-            char = self.regular_expression[i]
-            if char.isalpha():
-                code = STATE_TYPES["CHAR_STATE"]
-                # state = State(code)
+#     def parse(self) -> None:
+#         i = 0
+#         prev_state = None
+#         while i < len(self.regular_expression):
+#             char = self.regular_expression[i]
+#             if char.isalpha():
+#                 code = STATE_TYPES["CHAR_STATE"]
+#                 # state = State(code)
 
 
 class StateMachine:
@@ -50,7 +50,7 @@ class StateMachine:
     def start(self):
         # using Bread first search
 
-        states: List[State] = []
+        states = []
         states.append(self.states[0])
         text = self.text
         states_pos = []
@@ -64,22 +64,16 @@ class StateMachine:
             print(current_char)
             print(char)
 
+            counter = 0
             for tr in state.out_transitions:
                 tr: TransitionArrow = tr
                 if tr.condition(char):
-                    if tr.state.state_type != STATE_TYPES["CHAR_STATE"]:
-                        states_pos.append(
-                            (
-                                tr.state.name,
-                                i,
-                                # STATE_TYPES_STR[tr.state.state_type],
-                                # current_char,
-                            )
-                        )
-                    states.append(tr.state)
+                    if tr.state.state_type == STATE_TYPES["START_STATE"]:
+                        states.append(tr.state)
+                        counter += 1
 
-                if len(states) == 0:
-                    states.append(self.states[0])
+            if counter == 0:
+                states.append(self.states[0])
 
         return states_pos
 
@@ -180,7 +174,7 @@ def compress_pos(states: List[tuple[str, int, str]]):
     return matches
 
 
-start_end_states = compress_pos(start_end_states)
+# start_end_states = compress_pos(start_end_states)
 
-for start, end in start_end_states:
-    print(text_1[start:end])
+# for start, end in start_end_states:
+#     print(text_1[start:end])
