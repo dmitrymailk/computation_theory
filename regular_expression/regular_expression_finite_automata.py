@@ -180,7 +180,7 @@ states.append(s_5)
 # states.append(s_6)
 
 # text_1 = "abbabbbcabcab"
-text_1 = "aaaabbbaaabaaabbcabcabcabaaaabbbb"
+text_1 = "aaaabbbaaabaaabbcabcabcabaaaabbbbabb"
 
 fsm = StateMachine(states=states, text=text_1)
 
@@ -189,11 +189,9 @@ start_end_states = fsm.start()
 print(start_end_states)
 
 
-# start_end_states = compress_pos(start_end_states)
-
 for item in start_end_states:
     start = item[0][0]
-    end = item[-1][0]+1
+    end = item[-1][0] + 1
 
     print(
         f"{text_1[start:end]} - {text_1[:start]}🢑{text_1[start:end]}🢑{text_1[end:]}")
