@@ -165,8 +165,6 @@ def infix_to_postfix_4(infix_notation, delimetr=""):
     """
     stack = []
     RPM = []
-    numbers_stack = []
-    signs_stack = []
 
     strength = {"+": 1, "-": 1, "*": 2, "/": 2, "(": 0}
     i = 0
@@ -183,14 +181,11 @@ def infix_to_postfix_4(infix_notation, delimetr=""):
             # if old_pos == i:
             i += 1
             num += delimetr
-            numbers_stack.append(num)
             RPM.append(num)
 
         elif char in "-+*/()":
             if len(stack) > 0:
                 if not char in "()":
-                    if char in "-+/*":
-                        signs_stack.append(char)
 
                     last_char = stack[-1]
                     if not last_char in ["(", ")"]:
@@ -230,10 +225,7 @@ def infix_to_postfix_4(infix_notation, delimetr=""):
                 if char == "-":
                     RPM.append("0" + delimetr)
                     stack.append("-")
-                    signs_stack.append("-")
                 else:
-                    if char in "-+/*":
-                        signs_stack.append(char)
                     stack.append(char)
                 i += 1
 
