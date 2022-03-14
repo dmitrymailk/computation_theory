@@ -166,7 +166,13 @@ def infix_to_postfix_4(infix_notation, delimetr=""):
     stack = []
     RPM = []
 
-    strength = {"+": 1, "-": 1, "*": 2, "/": 2, "(": 0}
+    strength = {
+        "+": 1,
+        "-": 1,
+        "*": 2,
+        "/": 2,
+    }
+
     i = 0
     while i < len(infix_notation):
         char = infix_notation[i]
@@ -178,10 +184,13 @@ def infix_to_postfix_4(infix_notation, delimetr=""):
                 ) and i < len(infix_notation):
                     num += infix_notation[i + 1]
                     i += 1
-            # if old_pos == i:
+
             i += 1
             num += delimetr
             RPM.append(num)
+            if i > 1:
+                if infix_notation[i - 1] == "-" and infix_notation[i - 2] == "(":
+                    RPM.append("-")
 
         elif char in "-+*/()":
             if len(stack) > 0:
@@ -189,27 +198,30 @@ def infix_to_postfix_4(infix_notation, delimetr=""):
 
                     last_char = stack[-1]
                     if not last_char in ["(", ")"]:
-                        if last_char == "(" and char == "-":
-                            RPM.append("0" + delimetr)
-                            stack.append("-")
+                        if strength[char] > strength[last_char]:
+                            stack.append(char)
                             i += 1
                         else:
-                            if strength[char] > strength[last_char]:
-                                stack.append(char)
-                                i += 1
-                            else:
-                                while (
-                                    len(stack) > 0
-                                    and strength[char] <= strength[last_char]
-                                ):
-                                    if stack[-1] == "(":
-                                        break
-                                    last_char = stack.pop()
-                                    RPM.append(last_char)
-                                stack.append(char)
-                                i += 1
+                            while (
+                                len(stack) > 0 and strength[char] <= strength[last_char]
+                            ):
+                                if stack[-1] == "(":
+                                    break
+                                last_char = stack.pop()
+                                RPM.append(last_char)
+                            stack.append(char)
+                            i += 1
                     else:
-                        stack.append(char)
+                        if (
+                            infix_notation[i - 1] == "("
+                            and char == "-"
+                            and infix_notation[i + 1]
+                        ):
+                            RPM.append("0" + delimetr)
+                            stack.append("-")
+                        #     RPM.append("-")
+                        else:
+                            stack.append(char)
                         i += 1
                 else:
                     if char == "(":
@@ -273,7 +285,7 @@ def postfix_calculation(RPM):
 
 
 # examples = [["5+(6.6+9-5.2)/(0.8+1*2)+7", "0;5;-+6.6;9;+5.2;0.8;1;2;*+/7;+"]]
-examples = [["-55+(6.7-9)*7", "569-7*+"]]
+examples = [["-55+(-6.7-9)*(-7)+(-2+3*4)/2", "569-7*+"]]
 # 05-+69+58;1;2;*+/7;++
 for item in examples:
     RPM = infix_to_postfix_4(item[0], delimetr="")
