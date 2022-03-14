@@ -1,5 +1,6 @@
 infix_notation = "3+3*3-3"
 infix_notation_1 = "(4+7)+2/3"
+infix_notation_2 = "1+2*(3-4)"
 
 
 def infix_to_postfix_1(infix_notation):
@@ -46,7 +47,7 @@ def infix_to_postfix_2(infix_notation):
 
     for char in infix_notation:
         if char.isdigit():
-            RPM.append(int(char))
+            RPM.append(char)
         elif char in ["-", "+", "*", "/", "(", ")"]:
             if len(stack) > 0:
                 if not char in ["(", ")"]:
@@ -58,8 +59,11 @@ def infix_to_postfix_2(infix_notation):
                             while (
                                 len(stack) > 0 and strength[char] <= strength[last_char]
                             ):
+                                if stack[-1] == "(":
+                                    break
                                 last_char = stack.pop()
                                 RPM.append(last_char)
+
                             stack.append(char)
                     else:
                         stack.append(char)
@@ -78,9 +82,16 @@ def infix_to_postfix_2(infix_notation):
     for char in stack[::-1]:
         RPM.append(char)
 
-    print(RPM)
-    return RPM
+    # print(RPM)
+    return "".join(RPM)
 
 
-infix_to_postfix_1(infix_notation=infix_notation)
-infix_to_postfix_2(infix_notation=infix_notation_1)
+# infix_to_postfix_1(infix_notation=infix_notation)
+# infix_to_postfix_2(infix_notation=infix_notation_1)
+# infix_to_postfix_2(infix_notation=infix_notation_2)
+examples = [["(6+9-5)/(8+1*2)+7", "69+5-812*+/7+"]]
+
+for item in examples:
+    predict = infix_to_postfix_2(item[0])
+    if predict != item[1]:
+        print(f"{item[1]}\n{predict}")
