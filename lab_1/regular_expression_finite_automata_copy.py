@@ -59,7 +59,7 @@ class StateMachine:
         # using Bread first search
 
         current_state: State = self.start_state
-        prev_state: State = None
+        prev_state: State = self.start_state
         i = 0
         text: str = self.text
         cur_len = 0
@@ -80,16 +80,19 @@ class StateMachine:
 
             if not is_next:
                 if current_state.state_type == STATE_TYPES["FINAL_STATE"]:
-                    sub_strings.append([i-cur_len, i])
-                    print(text[i-cur_len: i])
+                    if cur_len != 0:
+                        sub_strings.append([i-cur_len, i])
+                        print(text[i-cur_len: i])
+                    i -= 1
 
                 elif prev_state.state_type == STATE_TYPES["FINAL_STATE"]:
-                    sub_strings.append([i-cur_len, i-1])
-                    print(text[i-cur_len: i-1])
+                    if cur_len != 0:
+                        sub_strings.append([i-cur_len, i-1])
+                        print(text[i-cur_len: i-1])
                     i -= 1
 
-                if prev_state.state_type == STATE_TYPES["FINAL_STATE"] and current_state.state_type == STATE_TYPES["FINAL_STATE"]:
-                    i -= 1
+                # if prev_state.state_type == STATE_TYPES["FINAL_STATE"] and current_state.state_type == STATE_TYPES["FINAL_STATE"]:
+                #     i -= 1
 
                 if current_state.state_type != STATE_TYPES["CHAR_STATE"]:
                     i += 1
@@ -97,6 +100,10 @@ class StateMachine:
                 cur_len = 0
                 prev_state = current_state
                 current_state = self.start_state
+                if char == '\0':
+                    break
+
+        return sub_strings
 
     def __str__(self) -> str:
         state_type = STATE_TYPES_STR[self.current_state.state_type]
@@ -156,8 +163,10 @@ states.append(s_5)
 # states.append(s_6)
 
 # text_1 = "abbabbbcabcab"
-text_1 = "aaaabbbaaabaaabbcabcabcabaaaabbbbabb"
+# text_1 = "aaaabbbaaabaaabbcabcabcabaaaabbbbabb"
 # text_1 = "abcabcabab"
+# text_1 = "dabssdcanabncabfggsabbbncabcabsuijab"
+text_1 = ""
 
 fsm = StateMachine(states=states, text=text_1)
 
@@ -166,9 +175,9 @@ start_end_states = fsm.start()
 print(start_end_states)
 
 
-# for item in start_end_states:
-#     start = item[0][0]
-#     end = item[-1][0] + 1
+for item in start_end_states:
+    start = item[0]
+    end = item[1]
 
-#     print(
-#         f"{text_1[start:end]} - {text_1[:start]}🢑{text_1[start:end]}🢑{text_1[end:]}")
+    print(
+        f"{text_1[start:end]} - {text_1[:start]}🢑{text_1[start:end]}🢑{text_1[end:]}")
