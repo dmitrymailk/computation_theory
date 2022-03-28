@@ -2,7 +2,8 @@ from typing import List, Any, Callable
 
 regular_expression_str = "(ab+)*|(cab)+"
 
-STATE_TYPES = {"FINAL_STATE": 0, "START_STATE": 1, "CHAR_STATE": 2, "ROOT_STATE": 3}
+STATE_TYPES = {"FINAL_STATE": 0, "START_STATE": 1,
+               "CHAR_STATE": 2, "ROOT_STATE": 3}
 
 STATE_TYPES_STR = {STATE_TYPES[item]: item for item in STATE_TYPES.keys()}
 
@@ -50,75 +51,52 @@ class TransitionArrow:
 class StateMachine:
     def __init__(self, states: List[State], text: str) -> None:
         self.states: List[State] = states
-        self.current_state: State = self.states[0]
+        self.start_state: State = self.states[0]
         self.text: str = text + "\0"
         self.max_len: int = len(text)
 
     def start(self):
         # using Bread first search
 
-        states = []
-        states.append((self.states[0], []))
-        text = self.text
-        paths = []
-        prev_states = []
+        current_state: State = self.start_state
+        prev_state: State = None
+        i = 0
+        text: str = self.text
+        cur_len = 0
+        sub_strings = []
+        while i < len(text):
+            char = text[i]
+            print(f"{text[:i]}|{text[i:]}")
+            is_next = False
+            for arrow in current_state.out_transitions:
+                arrow: TransitionArrow = arrow
+                if arrow.condition(char):
+                    prev_state = current_state
+                    current_state = arrow.state
+                    cur_len += 1
+                    is_next = True
+                    i += 1
+                    break
 
-        for i, char in enumerate(text):
-            print(i, "-" * 50)
-            temp_states = []
-            while len(state) > 0:
-                state = states.pop(0)
-                prev_states = state[1]
-                print("prev_states before", prev_states)
-                state: State = state[0]
+            if not is_next:
+                if current_state.state_type == STATE_TYPES["FINAL_STATE"]:
+                    sub_strings.append([i-cur_len, i])
+                    print(text[i-cur_len: i])
 
-                print(f"{state.name} : {STATE_TYPES_STR[state.state_type]}")
-                current_char = f"{text[:i]}|{text[i:]}"
-                print(current_char)
-                print(char)
+                elif prev_state.state_type == STATE_TYPES["FINAL_STATE"]:
+                    sub_strings.append([i-cur_len, i-1])
+                    print(text[i-cur_len: i-1])
+                    i -= 1
 
-                counter = 0
-                for tr in state.out_transitions:
-                    tr: TransitionArrow = tr
-                    if tr.condition(char):
-                        counter += 1
-                        state_type = tr.state.state_type
+                if prev_state.state_type == STATE_TYPES["FINAL_STATE"] and current_state.state_type == STATE_TYPES["FINAL_STATE"]:
+                    i -= 1
 
-                        if state_type == STATE_TYPES["START_STATE"]:
-                            temp_states.append(
-                                (
-                                    tr.state,
-                                    [(i, state_type, tr.state.name)],
-                                )
-                            )
-                        elif state_type == STATE_TYPES["FINAL_STATE"]:
-                            temp_states.append(
-                                (
-                                    tr.state,
-                                    [prev_states[0], (i, state_type, tr.state.name)],
-                                )
-                            )
+                if current_state.state_type != STATE_TYPES["CHAR_STATE"]:
+                    i += 1
 
-                        else:
-                            temp_states.append(
-                                (
-                                    tr.state,
-                                    [*prev_states],
-                                )
-                            )
-                print("prev_states after", prev_states)
-
-                if len(prev_states) > 1:
-                    paths.append(prev_states)
-
-                if counter == 0:
-                    prev_states = []
-                    states.append((self.states[0], prev_states))
-
-        if len(prev_states) > 1:
-            paths.append(prev_states)
-        print("last prev_states", prev_states)
-        return paths
+                cur_len = 0
+                prev_state = current_state
+                current_state = self.start_state
 
     def __str__(self) -> str:
         state_type = STATE_TYPES_STR[self.current_state.state_type]
@@ -135,10 +113,10 @@ final_state = STATE_TYPES["FINAL_STATE"]
 root_state = STATE_TYPES["ROOT_STATE"]
 
 s_0 = State(state_type=root_state, name="s_0")
-s_1 = State(state_type=start_state, name="s_1")
+s_1 = State(state_type=char_state, name="s_1")
 s_2 = State(state_type=final_state, name="s_2")
 s_3 = State(state_type=final_state, name="s_3")
-s_4 = State(state_type=start_state, name="s_4")
+s_4 = State(state_type=char_state, name="s_4")
 s_5 = State(state_type=char_state, name="s_5")
 
 
@@ -148,9 +126,8 @@ s_0.add_out_transition(s_0_out_0)
 s_0.add_out_transition(s_0_out_1)
 
 s_1_out_0 = TransitionArrow(state=s_2, condition=lambda c: c == "b")
-s_1_out_1 = TransitionArrow(state=s_1, condition=lambda c: c == "a")
 s_1.add_out_transition(s_1_out_0)
-s_1.add_out_transition(s_1_out_1)
+
 
 s_2_out_0 = TransitionArrow(state=s_2, condition=lambda c: c == "b")
 s_2_out_1 = TransitionArrow(state=s_1, condition=lambda c: c == "a")
@@ -180,6 +157,7 @@ states.append(s_5)
 
 # text_1 = "abbabbbcabcab"
 text_1 = "aaaabbbaaabaaabbcabcabcabaaaabbbbabb"
+# text_1 = "abcabcabab"
 
 fsm = StateMachine(states=states, text=text_1)
 
@@ -188,8 +166,9 @@ start_end_states = fsm.start()
 print(start_end_states)
 
 
-for item in start_end_states:
-    start = item[0][0]
-    end = item[-1][0] + 1
+# for item in start_end_states:
+#     start = item[0][0]
+#     end = item[-1][0] + 1
 
-    print(f"{text_1[start:end]} - {text_1[:start]}🢑{text_1[start:end]}🢑{text_1[end:]}")
+#     print(
+#         f"{text_1[start:end]} - {text_1[:start]}🢑{text_1[start:end]}🢑{text_1[end:]}")

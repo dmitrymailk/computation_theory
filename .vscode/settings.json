@@ -3,5 +3,6 @@
     "*.hbs": "handlebars",
     "*.html": "html",
     "xstring": "cpp"
-  }
+  },
+  "python.formatting.provider": "autopep8"
 }
