@@ -65,54 +65,55 @@ class StateMachine:
 
         for i, char in enumerate(text):
             print(i, "-" * 50)
+            temp_states = []
+            while len(state) > 0:
+                state = states.pop(0)
+                prev_states = state[1]
+                print("prev_states before", prev_states)
+                state: State = state[0]
 
-            state = states.pop(0)
-            prev_states = state[1]
-            print("prev_states before", prev_states)
-            state: State = state[0]
+                print(f"{state.name} : {STATE_TYPES_STR[state.state_type]}")
+                current_char = f"{text[:i]}|{text[i:]}"
+                print(current_char)
+                print(char)
 
-            print(f"{state.name} : {STATE_TYPES_STR[state.state_type]}")
-            current_char = f"{text[:i]}|{text[i:]}"
-            print(current_char)
-            print(char)
+                counter = 0
+                for tr in state.out_transitions:
+                    tr: TransitionArrow = tr
+                    if tr.condition(char):
+                        counter += 1
+                        state_type = tr.state.state_type
 
-            counter = 0
-            for tr in state.out_transitions:
-                tr: TransitionArrow = tr
-                if tr.condition(char):
-                    counter += 1
-                    state_type = tr.state.state_type
-
-                    if state_type == STATE_TYPES["START_STATE"]:
-                        states.append(
-                            (
-                                tr.state,
-                                [(i, state_type, tr.state.name)],
+                        if state_type == STATE_TYPES["START_STATE"]:
+                            temp_states.append(
+                                (
+                                    tr.state,
+                                    [(i, state_type, tr.state.name)],
+                                )
                             )
-                        )
-                    elif state_type == STATE_TYPES["FINAL_STATE"]:
-                        states.append(
-                            (
-                                tr.state,
-                                [prev_states[0], (i, state_type, tr.state.name)],
+                        elif state_type == STATE_TYPES["FINAL_STATE"]:
+                            temp_states.append(
+                                (
+                                    tr.state,
+                                    [prev_states[0], (i, state_type, tr.state.name)],
+                                )
                             )
-                        )
 
-                    else:
-                        states.append(
-                            (
-                                tr.state,
-                                [*prev_states],
+                        else:
+                            temp_states.append(
+                                (
+                                    tr.state,
+                                    [*prev_states],
+                                )
                             )
-                        )
-            print("prev_states after", prev_states)
+                print("prev_states after", prev_states)
 
-            if len(prev_states) > 1:
-                paths.append(prev_states)
+                if len(prev_states) > 1:
+                    paths.append(prev_states)
 
-            if counter == 0:
-                prev_states = []
-                states.append((self.states[0], prev_states))
+                if counter == 0:
+                    prev_states = []
+                    states.append((self.states[0], prev_states))
 
         if len(prev_states) > 1:
             paths.append(prev_states)
@@ -178,8 +179,7 @@ states.append(s_5)
 # states.append(s_6)
 
 # text_1 = "abbabbbcabcab"
-# text_1 = "aaaabbbaaabaaabbcabcabcabaaaabbbbabb"
-text_1 = "abcabcabab"
+text_1 = "aaaabbbaaabaaabbcabcabcabaaaabbbbabb"
 
 fsm = StateMachine(states=states, text=text_1)
 
