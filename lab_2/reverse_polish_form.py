@@ -257,7 +257,9 @@ def infix_to_postfix_5(infix_notation, delimetr=""):
         "-": 1,
         "*": 2,
         "/": 2,
-        "cos": 2
+        "cos": 2,
+        "sin": 2,
+        "(": -1
     }
 
     i = 0
@@ -291,7 +293,7 @@ def infix_to_postfix_5(infix_notation, delimetr=""):
                             i += 1
                         else:
                             while (
-                                len(stack) > 0 and strength[char] <= strength[last_char]
+                                len(stack) > 0 and strength[char] <= strength[stack[-1]]
                             ):
                                 if stack[-1] == "(":
                                     break
@@ -314,7 +316,7 @@ def infix_to_postfix_5(infix_notation, delimetr=""):
                     if char == "(":
                         stack.append(char)
                         i += 1
-                    else:
+                    elif char == ")":
                         last_char = stack.pop()
                         while len(stack) > 0 and last_char != "(":
                             RPM.append(last_char)
@@ -332,6 +334,11 @@ def infix_to_postfix_5(infix_notation, delimetr=""):
                 print("cos")
                 RPM.append("0")
                 stack.append('cos')
+                i += 3
+            elif infix_notation[i:i+3] == 'sin':
+                print("sin")
+                RPM.append("0")
+                stack.append('sin')
                 i += 3
 
     # simply getting operations from stack and passing them to RPM
@@ -358,6 +365,8 @@ def postfix_calculation(RPM):
             result = num_1 * num_2
         elif sign == 'cos':
             result = math.cos(num_2)
+        elif sign == 'sin':
+            result = math.sin(num_2)
 
         return result
 
@@ -382,7 +391,7 @@ def postfix_calculation(RPM):
 # examples = [["5+(6.6+9-5.2)/(0.8+1*2)+7", "0;5;-+6.6;9;+5.2;0.8;1;2;*+/7;+"]]
 # examples = [["-55+(-60.70-9)*(-7)-(120+3*4.56)/(-22)", "569-7*+"]]
 # examples = [["-(-3.5+2*2.25)*7+1*cos(1+5*4)", "569-7*+"]]
-examples = ['-cos(2*3+2)*cos(2+3*5)-5*6']
+examples = ['1+2*(3+4/2-cos(1+2))*2+1']
 # 05-+69+58;1;2;*+/7;++
 for item in examples:
     RPM = infix_to_postfix_5(item, delimetr="")
