@@ -2,7 +2,8 @@ from typing import List, Any, Callable
 
 regular_expression_str = "(ab+)*|(cab)+"
 
-STATE_TYPES = {"FINAL_STATE": 0, "START_STATE": 1, "CHAR_STATE": 2, "ROOT_STATE": 3}
+STATE_TYPES = {"FINAL_STATE": 0, "START_STATE": 1,
+               "CHAR_STATE": 2, "ROOT_STATE": 3}
 
 STATE_TYPES_STR = {STATE_TYPES[item]: item for item in STATE_TYPES.keys()}
 
@@ -94,7 +95,8 @@ class StateMachine:
                         states.append(
                             (
                                 tr.state,
-                                [prev_states[0], (i, state_type, tr.state.name)],
+                                [prev_states[0],
+                                    (i, state_type, tr.state.name)],
                             )
                         )
 
@@ -178,8 +180,8 @@ states.append(s_5)
 # states.append(s_6)
 
 # text_1 = "abbabbbcabcab"
-# text_1 = "aaaabbbaaabaaabbcabcabcabaaaabbbbabb"
-text_1 = "abcabcabab"
+text_1 = "aaaabbbaaabaaabbcabcabcabaaaabbbbabb"
+# text_1 = "abcabcabab"
 
 fsm = StateMachine(states=states, text=text_1)
 
@@ -192,4 +194,5 @@ for item in start_end_states:
     start = item[0][0]
     end = item[-1][0] + 1
 
-    print(f"{text_1[start:end]} - {text_1[:start]}🢑{text_1[start:end]}🢑{text_1[end:]}")
+    print(
+        f"{text_1[start:end]} - {text_1[:start]}🢑{text_1[start:end]}🢑{text_1[end:]}")

@@ -1,5 +1,4 @@
 from typing import List, Any, Callable
-
 regular_expression_str = "(ab+)*|(cab)+"
 
 STATE_TYPES = {"FINAL_STATE": 0, "START_STATE": 1,
@@ -63,6 +62,8 @@ class StateMachine:
         i = 0
         text: str = self.text
         cur_len = 0
+        last_final_state = 0
+        last_final_state_len = 0
         sub_strings = []
         while i < len(text):
             char = text[i]
@@ -73,6 +74,10 @@ class StateMachine:
                 if arrow.condition(char):
                     prev_state = current_state
                     current_state = arrow.state
+                    if current_state.state_type == STATE_TYPES["FINAL_STATE"]:
+                        last_final_state = i + 1
+                        last_final_state_len = cur_len + 1
+
                     cur_len += 1
                     is_next = True
                     i += 1
@@ -83,12 +88,16 @@ class StateMachine:
                     if cur_len != 0:
                         sub_strings.append([i-cur_len, i])
                         print(text[i-cur_len: i])
+                        last_final_state = 0
+                        last_final_state_len = 0
                     i -= 1
 
                 elif prev_state.state_type == STATE_TYPES["FINAL_STATE"]:
                     if cur_len != 0:
                         sub_strings.append([i-cur_len, i-1])
                         print(text[i-cur_len: i-1])
+                        last_final_state = 0
+                        last_final_state_len = 0
                     i -= 1
 
                 # if prev_state.state_type == STATE_TYPES["FINAL_STATE"] and current_state.state_type == STATE_TYPES["FINAL_STATE"]:
@@ -97,6 +106,13 @@ class StateMachine:
                 if current_state.state_type != STATE_TYPES["CHAR_STATE"]:
                     i += 1
 
+                if last_final_state != 0 and last_final_state_len != 0:
+                    sub_strings.append([last_final_state -
+                                        last_final_state_len, last_final_state])
+                    print(text[last_final_state -
+                          last_final_state_len: last_final_state])
+                    last_final_state = 0
+                    last_final_state_len = 0
                 cur_len = 0
                 prev_state = current_state
                 current_state = self.start_state
@@ -165,8 +181,8 @@ states.append(s_5)
 # text_1 = "abbabbbcabcab"
 # text_1 = "aaaabbbaaabaaabbcabcabcabaaaabbbbabb"
 # text_1 = "abcabcabab"
-# text_1 = "dabssdcanabncabfggsabbbncabcabsuijab"
-text_1 = ""
+text_1 = "dabssdcanabncabfggsabbbncabcasuijcabcajcadcabcabk"
+# text_1 = "aaacabcabca"
 
 fsm = StateMachine(states=states, text=text_1)
 
@@ -180,4 +196,4 @@ for item in start_end_states:
     end = item[1]
 
     print(
-        f"{text_1[start:end]} - {text_1[:start]}🢑{text_1[start:end]}🢑{text_1[end:]}")
+        f"{text_1[start:end]} - {text_1[:start]}\x1b[1;33m🢑{text_1[start:end]}\x1b[0m{text_1[end:]}")
