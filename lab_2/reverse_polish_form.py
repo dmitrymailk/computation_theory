@@ -256,9 +256,11 @@ def infix_to_postfix_5(infix_notation, delimetr=""):
         "+": 1,
         "-": 1,
         "*": 2,
+        "^": 3,
         "/": 2,
         "cos": 2,
         "sin": 2,
+        "sqrt": 2,
         "(": -1
     }
 
@@ -282,7 +284,7 @@ def infix_to_postfix_5(infix_notation, delimetr=""):
                 if infix_notation[i - 1] == "-" and infix_notation[i - 2] == "(":
                     RPM.append("-")
 
-        elif char in "-+*/()":
+        elif char in "-+*/()^":
             if len(stack) > 0:
                 if not char in "()":
 
@@ -340,6 +342,11 @@ def infix_to_postfix_5(infix_notation, delimetr=""):
                 RPM.append("0")
                 stack.append('sin')
                 i += 3
+            elif infix_notation[i:i+4] == 'sqrt':
+                print("sqrt")
+                RPM.append("0")
+                stack.append('sqrt')
+                i += 4
 
     # simply getting operations from stack and passing them to RPM
     for char in stack[::-1]:
@@ -367,6 +374,10 @@ def postfix_calculation(RPM):
             result = math.cos(num_2)
         elif sign == 'sin':
             result = math.sin(num_2)
+        elif sign == 'sqrt':
+            result = math.sqrt(num_2)
+        elif sign == '^':
+            result = num_1 ** num_2
 
         return result
 
@@ -391,9 +402,11 @@ def postfix_calculation(RPM):
 # examples = [["5+(6.6+9-5.2)/(0.8+1*2)+7", "0;5;-+6.6;9;+5.2;0.8;1;2;*+/7;+"]]
 # examples = [["-55+(-60.70-9)*(-7)-(120+3*4.56)/(-22)", "569-7*+"]]
 # examples = [["-(-3.5+2*2.25)*7+1*cos(1+5*4)", "569-7*+"]]
-examples = ['1+2*(3+4/2-cos(1+2))*2+1',
-            "-(-3.5+2*2.25)*7+1*cos(1+5*4)*(sin(3+5*6)+2)"
-            ]
+examples = [
+    # '1+2*(3+4/2-cos(1+2))*2+1',
+    "-sqrt(-3.5+2*2.25)*7+1*cos(1+5*4)*(sin(3+5*6)+2)*sqrt(123+4*5+12)^3",
+    # "-2*(2+3*2)^2"
+]
 # 05-+69+58;1;2;*+/7;++
 for item in examples:
     RPM = infix_to_postfix_5(item, delimetr="")
@@ -401,6 +414,7 @@ for item in examples:
     print(RPM)
     result = postfix_calculation(RPM)
     eval_result = "exec('from math import *') or "+item
+    eval_result = eval_result.replace("^", "**")
     print(result, eval(eval_result))
     # print(f"{item[1]}\n{predict}")
 
