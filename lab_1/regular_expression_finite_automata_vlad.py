@@ -1,5 +1,5 @@
 from typing import List, Any, Callable
-regular_expression_str = "(ab+)*|(cab)+"
+regular_expression_str = "(a|b|c)+(acd|adb)*"
 
 STATE_TYPES = {"FINAL_STATE": 0, "START_STATE": 1,
                "CHAR_STATE": 2, "ROOT_STATE": 3}
@@ -136,39 +136,37 @@ final_state = STATE_TYPES["FINAL_STATE"]
 root_state = STATE_TYPES["ROOT_STATE"]
 
 s_0 = State(state_type=root_state, name="s_0")
-s_1 = State(state_type=char_state, name="s_1")
-s_2 = State(state_type=final_state, name="s_2")
-s_3 = State(state_type=final_state, name="s_3")
+s_1 = State(state_type=final_state, name="s_1")
+s_2 = State(state_type=char_state, name="s_2")
+s_3 = State(state_type=char_state, name="s_3")
 s_4 = State(state_type=char_state, name="s_4")
-s_5 = State(state_type=char_state, name="s_5")
+s_5 = State(state_type=final_state, name="s_5")
+s_6 = State(state_type=final_state, name="s_6")
 
-
-s_0_out_0 = TransitionArrow(state=s_1, condition=lambda c: c == "a")
-s_0_out_1 = TransitionArrow(state=s_4, condition=lambda c: c == "c")
+s_0_out_0 = TransitionArrow(state=s_1, condition=lambda c: c in "abc")
 s_0.add_out_transition(s_0_out_0)
-s_0.add_out_transition(s_0_out_1)
 
-s_1_out_0 = TransitionArrow(state=s_2, condition=lambda c: c == "b")
+s_1_out_0 = TransitionArrow(state=s_1, condition=lambda c: c in 'abc')
+s_1_out_1 = TransitionArrow(state=s_2, condition=lambda c: c == 'a')
 s_1.add_out_transition(s_1_out_0)
+s_1.add_out_transition(s_1_out_1)
 
-
-s_2_out_0 = TransitionArrow(state=s_2, condition=lambda c: c == "b")
-s_2_out_1 = TransitionArrow(state=s_1, condition=lambda c: c == "a")
-# s_2_out_2 = TransitionArrow(state=s_3, condition=lambda c: not c in ["a", 'b'])
+s_2_out_0 = TransitionArrow(state=s_3, condition=lambda c: c == 'c')
+s_2_out_1 = TransitionArrow(state=s_4, condition=lambda c: c == 'd')
 s_2.add_out_transition(s_2_out_0)
 s_2.add_out_transition(s_2_out_1)
-# s_2.add_out_transition(s_2_out_2)
 
-s_3_out_0 = TransitionArrow(state=s_4, condition=lambda c: c == "c")
-# s_3_out_1 = TransitionArrow(state=s_1, condition=lambda c: c == "a")
+s_3_out_0 = TransitionArrow(state=s_5, condition=lambda c: c == 'd')
 s_3.add_out_transition(s_3_out_0)
-# s_3.add_out_transition(s_3_out_1)
 
-s_4_out_0 = TransitionArrow(state=s_5, condition=lambda c: c == "a")
+s_4_out_0 = TransitionArrow(state=s_6, condition=lambda c: c == 'b')
 s_4.add_out_transition(s_4_out_0)
 
-s_5_out_0 = TransitionArrow(state=s_3, condition=lambda c: c == "b")
+s_5_out_0 = TransitionArrow(state=s_2, condition=lambda c: c == 'a')
 s_5.add_out_transition(s_5_out_0)
+
+s_6_out_0 = TransitionArrow(state=s_2, condition=lambda c: c == 'a')
+s_6.add_out_transition(s_6_out_0)
 
 states.append(s_0)
 states.append(s_1)
@@ -176,14 +174,13 @@ states.append(s_2)
 states.append(s_3)
 states.append(s_4)
 states.append(s_5)
-# states.append(s_6)
+states.append(s_6)
 
 # text_1 = "abbabbbcabcab"
 # text_1 = "aaaabbbaaabaaabbcabcabcabaaaabbbbabb"
 # text_1 = "abcabcabab"
-# text_1 = "dabssdcanabncabfggsabbbncabcasuijcabcajcadcabcabk"
+text_1 = "adbabdadbacddddadb"
 # text_1 = "aaacabcabca"
-text_1 = "abbcabcababb"
 
 fsm = StateMachine(states=states, text=text_1)
 
