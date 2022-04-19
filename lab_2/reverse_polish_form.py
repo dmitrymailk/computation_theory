@@ -270,10 +270,10 @@ def infix_to_postfix_5(infix_notation, delimetr=""):
         if char.isdigit():
             num = f"{char}"
             if i < len(infix_notation) - 1:
-                while (
-                    infix_notation[i +
-                                   1].isdigit() or infix_notation[i + 1] == "."
-                ) and i < len(infix_notation):
+                while i < len(infix_notation) - 1:
+                    if not (infix_notation[i + 1].isdigit() or infix_notation[i + 1] == "."):
+                        break
+
                     num += infix_notation[i + 1]
                     i += 1
 
@@ -406,8 +406,10 @@ examples = [
     # '1+2*(3+4/2-cos(1+2))*2+1',
     # "-sqrt(-3.5+2*2.25)*7^0.5+1*cos(1+5*4)*(sin(3+5*6)+2)*sqrt(123+4*5+12)^3",
     # "-2*(2+3*2)^2"
-    "3.5*cos(3-1.5*(1+1))+2"
+    "3.5*cos(3-1.5*(1+1))+2.5",
+    # "2.5"
 ]
+
 # 05-+69+58;1;2;*+/7;++
 for item in examples:
     RPM = infix_to_postfix_5(item, delimetr="")
