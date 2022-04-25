@@ -405,8 +405,8 @@ def postfix_calculation(RPM):
 examples = [
     # '1+2*(3+4/2-cos(1+2))*2+1',
     # "-sqrt(-3.5+2*2.25)*7^0.5+1*cos(1+5*4)*(sin(3+5*6)+2)*sqrt(123+4*5+12)^3",
-    # "-2*(2+3*2)^2"
-    "3.5*cos(3-1.5*(1+1))+2.5",
+    "-2*(2+3*2)*2"
+    # "((1*2)+3)",
     # "2.5"
 ]
 
@@ -414,7 +414,8 @@ examples = [
 for item in examples:
     RPM = infix_to_postfix_5(item, delimetr="")
     # if predict != item[1]:
-    print(RPM)
+    print("".join(RPM))
+
     result = postfix_calculation(RPM)
     eval_result = "exec('from math import *') or "+item
     eval_result = eval_result.replace("^", "**")
