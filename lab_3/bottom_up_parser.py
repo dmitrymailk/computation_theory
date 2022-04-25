@@ -91,11 +91,11 @@ class BottomUpParser:
             state = state_stack[-1]
             action_type = self.get_action_name(state, token)
 
-            tmp = self.format_state_stack(state_stack)
+            state_number = self.format_state_stack(state_stack)
 
-            tmp2 = ready_form + self.expression
+            temp_expression_form = ready_form + self.expression
 
-            print(f"{tmp}\t\t", tmp2)
+            print(f"{state_number}\t\t", temp_expression_form)
 
             if action_type == "end":
                 break
