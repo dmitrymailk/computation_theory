@@ -2,7 +2,7 @@ from collections import deque
 
 # https://web.stanford.edu/class/archive/cs/cs143/cs143.1128/handouts/100%20Bottom-Up%20Parsing.pdf
 # grammar rules in reverse order
-Rule = {
+grammar = {
     "E1": "E+T",
     "E0": "T",
     "T1": "T*f",
@@ -10,7 +10,7 @@ Rule = {
     "f1": "(E)",
     "f0": "x",
 }
-Table = {
+table = {
     'E': ["s1", "", "", "", "", "", "", "", "s9", "", "", ""],
     'T': ["s4", "", "s3", "", "", "", "", "", "s4", "", "", ""],
     'f': ["s7", "", "s7", "", "", "s6", "", "", "s7", "", "", ""],
@@ -22,8 +22,6 @@ Table = {
     '@': ["", "end", "", "r0", "r1", "", "r2", "r3", "", "", "r4", "r5"],
 }
 
-initial_string = "int+(int+int+int)"
-
 
 class BottomUpParser:
     def __init__(self, expression):
@@ -31,7 +29,8 @@ class BottomUpParser:
         self.expression = f"{expression}@"
 
     def get_action_name(self, state, symbol):
-        l = Table.get(symbol, None)
+        # принимаем решение что нам надо сделать свертку или сдвиг
+        l = table.get(symbol, None)
         if l == None:
             return "Unknown symbol"
 
@@ -48,7 +47,7 @@ class BottomUpParser:
             return "error"
 
     def get_action_number(self, state, symbol):
-        l = Table.get(symbol, None)
+        l = table.get(symbol, None)
         if l == None:
             return -1
 
@@ -58,10 +57,10 @@ class BottomUpParser:
 
     def get_replace(self, string):
         add = ""
-        string = string[:]
+        # ищем подстроку пока она не совпадет с одной из продукций
         while len(string) != 0:
-            for item in Rule.keys():
-                if Rule[item] == string:
+            for item in grammar.keys():
+                if grammar[item] == string:
                     return add + item[0]
 
             add += string[0]
@@ -69,9 +68,9 @@ class BottomUpParser:
 
         return "Replace not found"
 
-    def format_state_stack(self, stk):
+    def format_state_stack(self, stack):
         result = ""
-        states = stk[:]
+        states = stack[:]
 
         while len(states) != 0:
             result += str(states.pop(0)) + " "
@@ -79,41 +78,42 @@ class BottomUpParser:
         return result
 
     def LR(self, ):
-        stateStack = []
-        readyForm = ""
+        state_stack = []
+        ready_form = ""
 
-        # Подготовка к первому шагу
-        stateStack.append(0)
+        # переходим в начальное состояние
+        state_stack.append(0)
         token = self.expression[0]
 
-        print("{0,20}  |  {1, 20}  |", "State stack", "Result")
+        print("State stack\t", "Result")
 
         while True:
-            state = stateStack[-1]
-            doing = self.get_action_name(state, token)
+            state = state_stack[-1]
+            action_type = self.get_action_name(state, token)
 
-            tmp = self.format_state_stack(stateStack)
+            tmp = self.format_state_stack(state_stack)
 
-            tmp2 = readyForm + self.expression
+            tmp2 = ready_form + self.expression
 
-            print("{0,20}  |  {1, 20}  |", tmp, tmp2)
+            print(f"{tmp}\t\t", tmp2)
 
-            if doing == "end":
+            if action_type == "end":
                 break
 
-            actNum = self.get_action_number(state, token)
-            stateStack.pop()
+            act_num = self.get_action_number(state, token)
+            state_stack.pop()
 
-            if doing == "shift":
-                stateStack.append(actNum)
-                readyForm += token
+            if action_type == "shift":
+                state_stack.append(act_num)
+                ready_form += token
                 self.expression = self.expression[1:]
                 token = self.expression[0]
-            elif doing == "reduce":
-                readyForm = self.get_replace(readyForm)
-                actNum = self.get_action_number(actNum, readyForm[-1])
-                stateStack.append(actNum)
+
+            elif action_type == "reduce":
+                ready_form = self.get_replace(ready_form)
+                act_num = self.get_action_number(act_num, ready_form[-1])
+                state_stack.append(act_num)
 
 
-parser = BottomUpParser("x+x*x")
+parser = BottomUpParser("(x)+(x*x)*x")
 parser.LR()
