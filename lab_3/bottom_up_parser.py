@@ -106,6 +106,8 @@ class BottomUpParser:
         while True:
 
             state = state_stack[-1]
+            # state = state_stack.pop()
+
             action_type = self.get_action_name(state, token)
 
             state_number = self.format_state_stack(state_stack)
