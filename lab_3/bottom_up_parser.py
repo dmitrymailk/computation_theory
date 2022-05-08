@@ -3,13 +3,23 @@ from collections import deque
 # https://web.stanford.edu/class/archive/cs/cs143/cs143.1128/handouts/100%20Bottom-Up%20Parsing.pdf
 # grammar rules in reverse order
 grammar = {
-    "E1": "E+T",
-    "E0": "T",
-    "T1": "T*f",
-    "T0": "f",
-    "f1": "(E)",
-    "f0": "x",
+    "E0": "T",   # 0 E -> T
+    "E1": "E+T",  # 1 E -> E+T
+    "T0": "f",   # 2 T -> f
+    "T1": "T*f",  # 3 T -> T*f
+    "f1": "(E)",  # 4 f -> (E)
+    "f0": "x",   # 5 f -> x
 }
+
+grammar_visual = [
+    "E->T",
+    "E->E+T",
+    "T->f",
+    "T->T*f",
+    "f->x",
+    "f->(E)",
+]
+
 table = {
     'E': ["s1", "", "", "", "", "", "", "", "s9", "", "", ""],
     'T': ["s4", "", "s3", "", "", "", "", "", "s4", "", "", ""],
@@ -35,6 +45,7 @@ class BottomUpParser:
             return "Unknown symbol"
 
         action = l[state]
+        # print(action)
 
         if action == "end":
             return "end"
@@ -61,6 +72,8 @@ class BottomUpParser:
         while len(string) != 0:
             for item in grammar.keys():
                 if grammar[item] == string:
+                    print(
+                        f'Применяем свертку {item[0]}->{grammar[item]} к ', end='')
                     return add + item[0]
 
             add += string[0]
@@ -78,16 +91,20 @@ class BottomUpParser:
         return result
 
     def LR(self, ):
+        result = []
         state_stack = []
         ready_form = ""
 
         # переходим в начальное состояние
         state_stack.append(0)
         token = self.expression[0]
+        # result.append("S =>(0) ")
 
-        print("State stack\t", "Result")
+        # print("State stack\t", "Result")
+        state_number = 0
 
         while True:
+
             state = state_stack[-1]
             action_type = self.get_action_name(state, token)
 
@@ -95,8 +112,11 @@ class BottomUpParser:
 
             temp_expression_form = ready_form + self.expression
 
-            print(f"{state_number}\t\t", temp_expression_form)
+            temp_action = table[token][int(state_number)]
+            if 's' in temp_action:
+                print(f"Применяем сдвиг {temp_action} к ", end='')
 
+            # print(f"{state_number}\t\t", temp_expression_form)
             if action_type == "end":
                 break
 
@@ -114,6 +134,11 @@ class BottomUpParser:
                 act_num = self.get_action_number(act_num, ready_form[-1])
                 state_stack.append(act_num)
 
+            print(temp_expression_form)
+            print("----")
 
-parser = BottomUpParser("(x)+(x*x)*x")
+        print("\n".join(result))
+
+
+parser = BottomUpParser("x+(x+x)*x")
 parser.LR()
