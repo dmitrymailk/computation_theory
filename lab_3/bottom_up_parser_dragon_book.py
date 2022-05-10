@@ -95,52 +95,78 @@ class LR_Parser:
         self.cur_pos = 0
 
     def parse(self):
+        # стек где мы будем хранить символы после преобразований и новые символы строки
         char_stack = []
+        # сначала мы находимся в нулевом состоянии
         state_stack = [0]
+        # первый входной символ это первый символ строки
         input_char = self.input_string[self.cur_pos]
+        # последнее состояние со стека состояний
         state = state_stack[-1]
-        while True:
 
+        # принята наша строка или нет
+        is_accepted = False
+
+        # мы не можем заранее знать сколько шагов нам понадобится
+        # так как условие остановки возникает в процессе обработки строки
+        while True:
+            # на каждой итерации мы берем последнее состояние со стека (не удаляя его)
             state = state_stack[-1]
+            # по входному символу и текущему состоянию берем из таблицы следующее действие
             action_type = self.action[input_char, state]
-            # print(f"Вход: {}")
-            # print(char_stack)
+            # переменная которая отображает количество пройденной строки
             input_string_print = self.input_string[self.cur_pos:]
-            state_stack_print = state_stack
+            # стока для отображения текущего стека состояний
+            state_stack_print = " ".join(map(str, state_stack))
+            # переменная для отображения свертки\сдвига\принятия
+            action_type_print = ""
+
+            # если мы достигли конца обработки строки
             if action_type == "acc":
-                print("Accepted")
+                action_type_print = "Accepted"
+                char_stack_print = "".join(char_stack)
+                is_accepted = True
                 break
 
+            # если тип действия это сдвиг
             if 's' in action_type:
-                # print(f"Shift {action_type}")
+                action_type_print = action_type
+                # номер следующего состояния
                 state = int(action_type[1:])
                 state_stack.append(state)
+                # перемещаем указатель в строке
                 self.cur_pos += 1
+                char_stack_print = "".join(char_stack)
+                # добавляем с стек символов текущий входной символ
                 char_stack.append(input_char)
-                print(char_stack)
+                # определяем следующий входной символ
                 input_char = self.input_string[self.cur_pos]
 
+            # если тип действия это свертка
             elif 'r' in action_type:
-                # print(char_stack)
+                # определяес номер продукции, которую должны применить к строке
                 production_num = int(action_type[1:])
+                # берем саму продукцию
                 rule = self.grammar[production_num]
-                b_rule_len = len(rule[1])
-                char_stack = char_stack[:-b_rule_len]
-                state_stack = state_stack[:-b_rule_len]
+                right_rule_len = len(rule[1])
+                char_stack_print = "".join(char_stack)
+                char_stack = char_stack[:-right_rule_len]
+                state_stack = state_stack[:-right_rule_len]
                 char_stack.append(rule[0])
 
                 state = state_stack[-1]
                 goto_state = self.goto[state, rule[0]]
                 state_stack.append(goto_state)
-                print(char_stack)
-                # print("->".join(rule))
-                # print(f"str = {''.join(char_stack)}{self.input_string[self.cur_pos:]}")
+                action_type_print = "->".join(rule)
             else:
-                print("Error")
+                print("Syntax Error")
                 break
-            # print(char_stack)
-            # print("----")
+            print(
+                f"{state_stack_print:20}{char_stack_print:10}{input_string_print:20}{action_type_print}")
+        if is_accepted:
+            print(
+                f"{state_stack_print:20}{char_stack_print:10}{input_string_print:20}{action_type_print}")
 
 
-parser = LR_Parser("x*x+x")
+parser = LR_Parser("x+(x+x)*x*(x*x+x)+")
 parser.parse()
