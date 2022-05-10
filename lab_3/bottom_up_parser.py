@@ -142,5 +142,5 @@ class BottomUpParser:
         print("\n".join(result))
 
 
-parser = BottomUpParser("x+(x+x)*x")
+parser = BottomUpParser("(x)")
 parser.LR()

@@ -56,7 +56,7 @@ class Goto:
 class Action:
     def __init__(self):
         self.action_table = [
-            ["s5", "", "" "s4", "", ""],
+            ["s5", "", "", "s4", "", ""],
             ["", "s6", "", "", "", "acc"],
             ["", "r2", "s7", "", "r2", "r2"],
             ["", "r4", "r4", "", "r4", "r4"],
@@ -148,25 +148,87 @@ class LR_Parser:
                 production_num = int(action_type[1:])
                 # берем саму продукцию
                 rule = self.grammar[production_num]
+                # узнаем длину продукции
                 right_rule_len = len(rule[1])
+                # превращаем содержимое стека символов в строку
                 char_stack_print = "".join(char_stack)
+                # удаляем последние символы со стека символов и состояний в количестве right_rule_len
                 char_stack = char_stack[:-right_rule_len]
                 state_stack = state_stack[:-right_rule_len]
+                # добавляем левую часть продукции в стек символов
                 char_stack.append(rule[0])
 
+                # берем последнее состояние со стека состояний
                 state = state_stack[-1]
+                # по таблице goto определяем следующее состояние
                 goto_state = self.goto[state, rule[0]]
+                # добавляем это состояние в стек состояний
                 state_stack.append(goto_state)
+                # превращаем продукцию в печатную строку
                 action_type_print = "->".join(rule)
             else:
-                print("Syntax Error")
+                char_stack_print = "".join(char_stack)
+                action_type_print = "Syntax Error"
+                print(
+                    f"{state_stack_print:20}{char_stack_print:10}{input_string_print:25}{action_type_print}")
                 break
             print(
-                f"{state_stack_print:20}{char_stack_print:10}{input_string_print:20}{action_type_print}")
+                f"{state_stack_print:20}{char_stack_print:10}{input_string_print:25}{action_type_print}")
         if is_accepted:
             print(
-                f"{state_stack_print:20}{char_stack_print:10}{input_string_print:20}{action_type_print}")
+                f"{state_stack_print:20}{char_stack_print:10}{input_string_print:25}{action_type_print}")
 
 
-parser = LR_Parser("x+(x+x)*x*(x*x+x)+")
+parser = LR_Parser("(x*x+x)*(x+(x+x)*x)")
 parser.parse()
+"""
+Результат работы для строки (x*x+x)*(x+(x+x)*x)
+----
+0                             (x*x+x)*(x+(x+x)*x)$     s4    
+0 4                 (         x*x+x)*(x+(x+x)*x)$      s5    
+0 4 5               (x        *x+x)*(x+(x+x)*x)$       F->x  
+0 4 3               (F        *x+x)*(x+(x+x)*x)$       T->F  
+0 4 2               (T        *x+x)*(x+(x+x)*x)$       s7    
+0 4 2 7             (T*       x+x)*(x+(x+x)*x)$        s5    
+0 4 2 7 5           (T*x      +x)*(x+(x+x)*x)$         F->x  
+0 4 2 7 10          (T*F      +x)*(x+(x+x)*x)$         T->T*F
+0 4 2               (T        +x)*(x+(x+x)*x)$         E->T  
+0 4 8               (E        +x)*(x+(x+x)*x)$         s6    
+0 4 8 6             (E+       x)*(x+(x+x)*x)$          s5    
+0 4 8 6 5           (E+x      )*(x+(x+x)*x)$           F->x  
+0 4 8 6 3           (E+F      )*(x+(x+x)*x)$           T->F  
+0 4 8 6 9           (E+T      )*(x+(x+x)*x)$           E->E+T
+0 4 8               (E        )*(x+(x+x)*x)$           s11   
+0 4 8 11            (E)       *(x+(x+x)*x)$            F->(E)
+0 3                 F         *(x+(x+x)*x)$            T->F
+0 2                 T         *(x+(x+x)*x)$            s7
+0 2 7               T*        (x+(x+x)*x)$             s4
+0 2 7 4             T*(       x+(x+x)*x)$              s5
+0 2 7 4 5           T*(x      +(x+x)*x)$               F->x
+0 2 7 4 3           T*(F      +(x+x)*x)$               T->F
+0 2 7 4 2           T*(T      +(x+x)*x)$               E->T
+0 2 7 4 8           T*(E      +(x+x)*x)$               s6
+0 2 7 4 8 6         T*(E+     (x+x)*x)$                s4
+0 2 7 4 8 6 4       T*(E+(    x+x)*x)$                 s5
+0 2 7 4 8 6 4 5     T*(E+(x   +x)*x)$                  F->x
+0 2 7 4 8 6 4 3     T*(E+(F   +x)*x)$                  T->F
+0 2 7 4 8 6 4 2     T*(E+(T   +x)*x)$                  E->T
+0 2 7 4 8 6 4 8     T*(E+(E   +x)*x)$                  s6
+0 2 7 4 8 6 4 8 6   T*(E+(E+  x)*x)$                   s5
+0 2 7 4 8 6 4 8 6 5 T*(E+(E+x )*x)$                    F->x
+0 2 7 4 8 6 4 8 6 3 T*(E+(E+F )*x)$                    T->F
+0 2 7 4 8 6 4 8 6 9 T*(E+(E+T )*x)$                    E->E+T
+0 2 7 4 8 6 4 8     T*(E+(E   )*x)$                    s11
+0 2 7 4 8 6 4 8 11  T*(E+(E)  *x)$                     F->(E)
+0 2 7 4 8 6 3       T*(E+F    *x)$                     T->F
+0 2 7 4 8 6 9       T*(E+T    *x)$                     s7
+0 2 7 4 8 6 9 7     T*(E+T*   x)$                      s5
+0 2 7 4 8 6 9 7 5   T*(E+T*x  )$                       F->x
+0 2 7 4 8 6 9 7 10  T*(E+T*F  )$                       T->T*F
+0 2 7 4 8 6 9       T*(E+T    )$                       E->E+T
+0 2 7 4 8           T*(E      )$                       s11
+0 2 7 4 8 11        T*(E)     $                        F->(E)
+0 2 7 10            T*F       $                        T->T*F
+0 2                 T         $                        E->T
+0 1                 E         $                        Accepted
+"""
