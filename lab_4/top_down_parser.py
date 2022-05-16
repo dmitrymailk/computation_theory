@@ -41,7 +41,7 @@ class SyntaxTable:
         return self.table[row_pos][column_pos]
 
 
-class LL_1_Parser:
+class TopDownParser:
     def __init__(self, input_string) -> None:
         self.input_string = f"{input_string}$"
         self.table = SyntaxTable()
@@ -95,5 +95,5 @@ class LL_1_Parser:
                 f"{char_stack_print:20}{input_string_print:20}{action_type_print:10}")
 
 
-parser = LL_1_Parser("x+(x+x*x)")
+parser = TopDownParser("x+(x+x*x)")
 parser.parse()
