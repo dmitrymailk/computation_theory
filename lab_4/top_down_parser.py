@@ -57,7 +57,9 @@ class TopDownParser:
         char_stack_print = " ".join(list(char_stack))
         input_string_print = self.input_string[self.cur_pos:]
         action_type_print = ""
-        print(f"{char_stack_print:20}{input_string_print:20}{action_type_print:10}")
+        # print(f"{char_stack_print:20}{input_string_print:20}{action_type_print:10}")
+        print("E", end=" ")
+        result_string = ""
 
         while char_state != "$":
             input_token = self.input_string[self.cur_pos]
@@ -66,6 +68,10 @@ class TopDownParser:
             if char_state == input_token:
                 char_stack.popleft()
                 action_type_print = f"Соответствие {input_token}"
+
+                if input_token != "ε":
+                    result_string += input_token
+
                 self.cur_pos += 1
             elif self.is_terminal(char_state):
                 print("Syntax Error")
@@ -89,11 +95,15 @@ class TopDownParser:
                 left_rule.reverse()
                 char_stack.extendleft(left_rule)
 
+                print(
+                    f"({action_type_print}) => {result_string}{''.join(list(char_stack)[:-1])} =>", end=" ")
+
             input_string_print = self.input_string[self.cur_pos:]
             char_stack_print = " ".join(list(char_stack))
-            print(
-                f"{char_stack_print:20}{input_string_print:20}{action_type_print:10}")
+            # print(f"{char_stack_print:20}{input_string_print:20}{action_type_print:10}")
+
+        # print(result_string)
 
 
-parser = TopDownParser("x+(x+x*x)")
+parser = TopDownParser("x+(x+x)*x")
 parser.parse()

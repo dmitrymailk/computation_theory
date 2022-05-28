@@ -106,7 +106,7 @@ class LR_Parser:
 
         # принята наша строка или нет
         is_accepted = False
-
+        production_num = 0
         # мы не можем заранее знать сколько шагов нам понадобится
         # так как условие остановки возникает в процессе обработки строки
         while True:
@@ -172,14 +172,18 @@ class LR_Parser:
                 print(
                     f"{state_stack_print:20}{char_stack_print:10}{input_string_print:25}{action_type_print}")
                 break
-            print(
-                f"{state_stack_print:20}{char_stack_print:10}{input_string_print:25}{action_type_print}")
+            # print(
+            #     f"{state_stack_print:20}{char_stack_print:10}{input_string_print:25}{action_type_print}")
+            if not "s" in action_type:
+                print(
+                    f"{char_stack_print}{input_string_print} => ({action_type_print})({production_num})", end=" ")
         if is_accepted:
             print(
-                f"{state_stack_print:20}{char_stack_print:10}{input_string_print:25}{action_type_print}")
+                f"{char_stack_print}{input_string_print} => ({action_type_print})({production_num})", end=" ")
+            # print(f"{state_stack_print:20}{char_stack_print:10}{input_string_print:25}{action_type_print}")
 
 
-parser = LR_Parser("(x*x+x)*(x+(x+x)*x)")
+parser = LR_Parser("x+(x+x)*x")
 parser.parse()
 """
 Результат работы для строки (x*x+x)*(x+(x+x)*x)
